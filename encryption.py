@@ -1,63 +1,51 @@
-def encrypt(text, password):
-    encrypted_text = []
-    password_length = len(password)
-    
-    for i, char in enumerate(text):
-        # Get the ASCII value of the character
-        char_code = ord(char)
-        
-        # Determine the shift based on the corresponding character in the password
-        # Use modulo to wrap around the password if it's shorter than the text
-        shift = ord(password[i % password_length]) - ord('a')  # Assuming password is lowercase
-        
-        # Encrypt only alphabetic characters
-        if char.isalpha():
-            if char.islower():
-                # Encrypt lowercase letters
-                new_char = chr((char_code - ord('a') + shift) % 26 + ord('a'))
-            else:
-                # Encrypt uppercase letters
-                new_char = chr((char_code - ord('A') + shift) % 26 + ord('A'))
-            encrypted_text.append(new_char)
-        else:
-            # Non-alphabetic characters are added unchanged
-            encrypted_text.append(char)
+def crypt(inp: str, salt: str, passwd: str)-> str:
+    wp= salt+passwd
+    table_let= "abcdefghijklmnopqrstuvwxyz"
+    table_num= "1234567890"
+    table_upp= table_let.upper()
+    table_sym= "~!@#$%^&*()_+-=[]{};':\",.<>/?\\|`"
+    table= table_let+table_num+table_upp+table_sym
+    objects= []
+    onjects =[]
+    i= 0
 
-    return ''.join(encrypted_text)
+    for c in inp:
+        j= 0
+        if not c in table:
+            onjects.append(127)
+            continue
 
-def decrypt(encrypted_text, password):
-    decrypted_text = []
-    password_length = len(password)
-    
-    for i, char in enumerate(encrypted_text):
-        # Get the ASCII value of the character
-        char_code = ord(char)
-        
-        # Determine the shift based on the corresponding character in the password
-        shift = ord(password[i % password_length]) - ord('a')  # Assuming password is lowercase
-        
-        # Decrypt only alphabetic characters
-        if char.isalpha():
-            if char.islower():
-                # Decrypt lowercase letters
-                new_char = chr((char_code - ord('a') - shift) % 26 + ord('a'))
-            else:
-                # Decrypt uppercase letters
-                new_char = chr((char_code - ord('A') - shift) % 26 + ord('A'))
-            decrypted_text.append(new_char)
-        else:
-            # Non-alphabetic characters are added unchanged
-            decrypted_text.append(char)
+        for x in table:
+            if x == c:
+                onjects.append(j)
 
-    return ''.join(decrypted_text)
+            j= j + 1
 
-# Example usage
+
+    for c in wp:
+        j= 0
+        if not c in table:
+            objects.append(127)
+            continue
+
+        for x in table:
+            if x == c:
+                objects.append(j)
+
+            j= j + 1
+
+    for o in onjects:
+        onjects[i]= o + objects[i]
+        i= i + 1
+
+    table= table + table_sym + table + table_upp + table_sym + table_upp + table + table + "uwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwu"
+    string_of_doom= ""
+    for w in onjects:
+        string_of_doom= string_of_doom + table[w]
+
+    return string_of_doom
+
 if __name__ == "__main__":
-    text = "Hello, World!"
-    password = "key"
-    
-    encrypted = encrypt(text, password.lower())  # Convert password to lowercase for consistency
-    print("Encrypted:", encrypted)
-
-    decrypted = decrypt(encrypted, password.lower())
-    print("Decrypted:", decrypted)
+    print("Hello, World")
+    print(crypt("Hello, World", "1234", "password"))
+    print(crypt("Hello, World", "5678", "grassdoor"))
