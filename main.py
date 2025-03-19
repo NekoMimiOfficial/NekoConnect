@@ -2,7 +2,6 @@
 
 import random
 import socket
-import time
 import sys
 import os
 import subprocess

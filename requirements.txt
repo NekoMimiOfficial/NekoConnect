@@ -1,0 +1,2 @@
+NekoMimi
+PyQt6
