@@ -1,0 +1,27 @@
+QScrollBar:vertical{
+  border: none;
+  background: #1d1e2e;
+  width: 6px;
+  margin: 10px 0px 10px 0px;
+}
+
+QScrollBar::handle:vertical{
+  background: #c6a1f0;
+  min-height: 20px;
+  border-radius: 4px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+  background: #1d1e2e;
+}
+
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+  background: #1d1e2e;
+}
+
+QTextEdit{
+  background-color: #1e1d2d;
+  border: none;
+  border-radius: 0px;
+  font-size: 16px;
+}

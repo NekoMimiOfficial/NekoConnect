@@ -1,0 +1,16 @@
+:root{
+  --background: #232232;
+  --sidebar: #1E1D2D;
+  --light: #2F2E3E;
+
+  --blue-cp: #799DDB;
+  --red-cp: #F38BA8;
+  --orange-cp: #F3B993;
+  --yellow-cp: #E6D1A3;
+  --green-cp: #A2DCAA;
+  --voilet-cp: #C6A1F0;
+
+  --ff: monospace, sans-serif;
+
+  --debug: rgba(255,0,0,0.3);
+}

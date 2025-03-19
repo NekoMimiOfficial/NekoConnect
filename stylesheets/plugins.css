@@ -1,0 +1,32 @@
+QVBoxLayout{
+  background-color: #1d1e2e;
+}
+
+QScrollArea{
+  background-color: #1d1e2e;
+}
+
+*{
+  background-color: #1d1e2e;
+}
+
+QScrollBar:vertical{
+  border: none;
+  background: transparent;
+  width: 6px;
+  margin: 10px 0px 10px 0px;
+}
+
+QScrollBar::handle:vertical{
+  background: #c6a1f0;
+  min-height: 20px;
+  border-radius: 4px;
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+  background: none;
+}
+
+QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
+  background: none;
+}

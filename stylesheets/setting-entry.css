@@ -1,0 +1,9 @@
+*{
+  border: 2px solid #c6a1f0;
+}
+QLabel{
+  border: none;
+}
+QLineEdit{
+  border: none;
+}

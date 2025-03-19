@@ -1,0 +1,8 @@
+mpvlog.txt
+pyvenv.cfg
+bin
+include
+lib
+lib64
+share
+__pycache__
