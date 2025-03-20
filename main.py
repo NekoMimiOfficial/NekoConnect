@@ -12,7 +12,7 @@ from NekoMimi import utils as nm
 from PyQt6.QtGui import QAction, QFontDatabase, QIcon, QPixmap
 from uiUtils import widgets
 from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtWidgets import QApplication, QDialog, QHBoxLayout, QLineEdit, QMenu, QPushButton, QScrollArea, QSplashScreen, QVBoxLayout, QWidget, QMainWindow, QTextEdit, QSystemTrayIcon, QStackedWidget
+from PyQt6.QtWidgets import QApplication, QDialog, QHBoxLayout, QLineEdit, QMenu, QMenuBar, QPushButton, QScrollArea, QSplashScreen, QVBoxLayout, QWidget, QMainWindow, QTextEdit, QSystemTrayIcon, QStackedWidget
 
 __version__= '1.0.0'
 __debug_f__= True
@@ -31,6 +31,14 @@ def save_conf(attrs):
     except Exception:
         pass
     nm.write(f"password= {attrs['pass']}\nport= {attrs['port']}", DIRECTORY+"/nc.conf")
+
+def generate_sources():
+    try:
+        os.mkdir(f"{subprocess.getoutput('echo $HOME')}/.local/share/NekoConnect")
+        os.mkdir(f"{subprocess.getoutput('echo $HOME')}/.local/share/NekoConnect/plugins")
+    except Exception:
+        pass
+    nm.write("src nekomimi.tilde.team/API/v4 main", DIRECTORY+"/repo.list")
 
 def load_conf():
     data= nm.read(DIRECTORY+"/nc.conf")
@@ -170,6 +178,9 @@ class UI(QMainWindow):
         self.server= Server(self.attrs["port"], self.attrs["pass"], self.log, self.warn, self.error, self.debug)
         self.server.init()
 
+        self.globalMenu= self.menuBar()
+        self.gm_constr()
+
         self.tray= QSystemTrayIcon(self)
         self.tray.setIcon(QIcon("./assets/NekoConnR.png"))
         self.tray.setContextMenu(self.trayMenu())
@@ -178,8 +189,12 @@ class UI(QMainWindow):
 
         self.setWindowIcon(QIcon("./assets/NekoConnect.png"))
         self.setWindowIconText("NekoConnect")
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.setWindowFlags(
+                Qt.WindowType.Window |
+                Qt.WindowType.CustomizeWindowHint |
+                Qt.WindowType.FramelessWindowHint
+                )
+        self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground)
         self.initial_pos= None
 
         self.show()
@@ -205,6 +220,13 @@ class UI(QMainWindow):
         self.initial_pos = None
         super().mouseReleaseEvent(event)
         event.accept()
+
+    def gm_constr(self):
+        file= self.globalMenu.addMenu("File") #type: ignore
+
+        exit_action= QAction("exit", self)
+        exit_action.triggered.connect(self.quit)
+        file.addAction(exit_action) #type: ignore
 
     def quit(self):
         if self.server.status():
@@ -359,7 +381,45 @@ class UI(QMainWindow):
             self.console_output.append(f"󰨰 {str(self.console_line)}| "+message)
             self.console_line= self.console_line + 1
 
+    def plugin_initialize(self):
+        plugins= []
+        if not path.exists(DIRECTORY+"/repo.list"):
+            generate_sources()
+
+        sources= nm.read(DIRECTORY+"/repo.list").split("\n")
+        i= 0
+        for source in sources:
+            if source == "":
+                sources.pop(i)
+                continue
+            if not len(source) > 8:
+                sources.pop(i)
+                continue
+            if not source[:3] == "src":
+                sources.pop(i)
+                continue
+            i= i+1
+
+        providers= []
+        for source in sources:
+            providers.append(source.split(" ")[1])
+
+        i= 0
+        for provider in providers:
+            if not provider.startswith("http://") or not provider.startswith("https://"):
+                providers[i]= "http://"+provider
+            i= i+1
+
+        for provider in providers:
+            if nm.isUp(provider) == 200:
+                pass
+            else:
+                self.warn(f"provider [{provider}] is unreachable.")
+
+        return plugins
+
     def plugin_constr(self):
+        plugins= self.plugin_initialize()
         w= QWidget()
         w.setStyleSheet(nm.read("./stylesheets/plugins.css"))
         sa= QScrollArea(w)
