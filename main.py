@@ -8,11 +8,12 @@ import subprocess
 import multiprocessing
 
 from os import path
+from functools import partial
 from NekoMimi import utils as nm
 from PyQt6.QtGui import QAction, QFontDatabase, QIcon, QPixmap
 from uiUtils import widgets
 from PyQt6.QtCore import QTimer, Qt
-from PyQt6.QtWidgets import QApplication, QDialog, QHBoxLayout, QLineEdit, QMenu, QMenuBar, QPushButton, QScrollArea, QSplashScreen, QVBoxLayout, QWidget, QMainWindow, QTextEdit, QSystemTrayIcon, QStackedWidget
+from PyQt6.QtWidgets import QApplication, QDialog, QHBoxLayout, QLineEdit, QMenu, QPushButton, QScrollArea, QSplashScreen, QVBoxLayout, QWidget, QMainWindow, QTextEdit, QSystemTrayIcon, QStackedWidget
 
 __version__= '1.0.0'
 __debug_f__= True
@@ -38,7 +39,7 @@ def generate_sources():
         os.mkdir(f"{subprocess.getoutput('echo $HOME')}/.local/share/NekoConnect/plugins")
     except Exception:
         pass
-    nm.write("src nekomimi.tilde.team/API/v4 main", DIRECTORY+"/repo.list")
+    nm.write("src nekomimi.tilde.team/repo/nekoconnect main", DIRECTORY+"/repo.list")
 
 def load_conf():
     data= nm.read(DIRECTORY+"/nc.conf")
@@ -178,9 +179,6 @@ class UI(QMainWindow):
         self.server= Server(self.attrs["port"], self.attrs["pass"], self.log, self.warn, self.error, self.debug)
         self.server.init()
 
-        self.globalMenu= self.menuBar()
-        self.gm_constr()
-
         self.tray= QSystemTrayIcon(self)
         self.tray.setIcon(QIcon("./assets/NekoConnR.png"))
         self.tray.setContextMenu(self.trayMenu())
@@ -194,7 +192,7 @@ class UI(QMainWindow):
                 Qt.WindowType.CustomizeWindowHint |
                 Qt.WindowType.FramelessWindowHint
                 )
-        self.setAttribute(Qt.WidgetAttribute.WA_NoSystemBackground)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.initial_pos= None
 
         self.show()
@@ -220,13 +218,6 @@ class UI(QMainWindow):
         self.initial_pos = None
         super().mouseReleaseEvent(event)
         event.accept()
-
-    def gm_constr(self):
-        file= self.globalMenu.addMenu("File") #type: ignore
-
-        exit_action= QAction("exit", self)
-        exit_action.triggered.connect(self.quit)
-        file.addAction(exit_action) #type: ignore
 
     def quit(self):
         if self.server.status():
@@ -411,12 +402,44 @@ class UI(QMainWindow):
             i= i+1
 
         for provider in providers:
-            if nm.isUp(provider) == 200:
+            code= nm.isUp(provider)
+            if code == 200:
                 pass
             else:
-                self.warn(f"provider [{provider}] is unreachable.")
+                if code == 0:
+                    code= "host down"
+                self.warn(f"provider [{provider}] is unreachable, code [{code}].")
 
         return plugins
+
+    def install_plugin(self, name: str, url: str):
+        self.log(f"installing plugin [{name}].")
+
+    def open_website(self, home: str):
+        pass
+
+    def plug_body_constr(self, icon: str, name: str, url: str, home: str):
+        w, hl= widgets.constr_hbox()
+        install_button= QPushButton()
+        web_button= QPushButton()
+        install_button.setText("")
+        web_button.setText("")
+        install_button.setStyleSheet(nm.read("./stylesheets/plugin-button.css"))
+        web_button.setStyleSheet(nm.read("./stylesheets/plugin-button.css"))
+        install_button.setMaximumSize(32, 32)
+        web_button.setMaximumSize(32, 32)
+        icon_label= widgets.constr_label(icon[0], nm.read("./stylesheets/plugin-icon.css"))
+        icon_label.setMaximumWidth(25)
+        hl.addWidget(icon_label)
+        hl.addWidget(widgets.constr_label(name))
+        hl.addWidget(install_button)
+        hl.addWidget(web_button)
+        w.setStyleSheet(nm.read("./stylesheets/plugin-body.css"))
+        w.setMaximumSize(1080, 60)
+        install_button.pressed.connect(partial(self.install_plugin, name, url))
+        web_button.pressed.connect(partial(self.open_website, home))
+
+        return w
 
     def plugin_constr(self):
         plugins= self.plugin_initialize()
@@ -429,29 +452,15 @@ class UI(QMainWindow):
         sa.setFixedHeight(250)
         vb= QVBoxLayout(vw)
         sa.setWidget(vw)
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
-        vb.addWidget(widgets.constr_label("hello"))
+        import_button= QPushButton()
+        import_button.setText(" Select local package")
+        import_button.setStyleSheet(nm.read("./stylesheets/import-button.css"))
+        vb.addWidget(import_button)
+        vb.addWidget(self.plug_body_constr("", "Hello, plugin!", "", ""))
+        vb.addWidget(self.plug_body_constr("", "Test likie :3", "", ""))
+        vb.addWidget(self.plug_body_constr("", "ooo! lookie! wifi :3", "", ""))
+        vb.addWidget(self.plug_body_constr("󰟩", "nya nya socketto !!!", "", ""))
+        vb.addWidget(self.plug_body_constr("", "teeminal :3", "", ""))
 
         return w
 
@@ -641,7 +650,10 @@ if __name__ == '__main__':
         splash= QSplashScreen(QPixmap("./assets/NekoConnectBanner.png"))
         splash.setWindowFlags(Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.FramelessWindowHint)
         splash.show()
-        QTimer.singleShot(2000, splash.close)
+        if __debug_f__:
+            QTimer.singleShot(200, splash.close)
+        else:
+            QTimer.singleShot(2000, splash.close)
         while splash.isVisible():
             app.processEvents()
     runner= UI()

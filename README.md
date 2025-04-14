@@ -8,7 +8,7 @@ With NekoConnect the sky is the limit, from chat apps to full game servers, "you
 Custom API with crappy authentication (as always :3)  
 Packet Spec:  
 ```cpp
-[4b: packet len][1b: op code len][1b: greeter len][2b: data len][1b: hash len][1b: next random string len][greeter][op code][random string][data][hash]
+[4b: packet len][1b: op code len][1b: greeter len][4b: data len][1b: hash len][1b: next random string len][greeter][op code][random string][data][hash]
 ```
 each plugin has its own greeter so that packets can be routed to the correct plugin  
 the op code is up to the plugin developer to use, its useful so why not, integer values only  
@@ -20,11 +20,13 @@ Example packet from the server:
 ```
 Example packet from a client:  
 ```cpp
-[len][len][len][len][len][len]["plugin"][op code, up to the plugin creator to decide][echos the random string from the last server response, "connect" if its the first][data, pretty much up to the devs][hash, in case of first packet it will hash "connect"]
+[len][len][len][len][len][len]["plugin"][op code, up to the plugin creator to decide][a generated random string to be used in the authentication process][data, pretty much up to the devs][hash, in case of first packet it will hash the client random string]
 ```
 Authentication sequence:  
-client sends {greet: "auth", op_code: 200, random: "connect", data: 200, hash: "XXXXXX"}  
-server sends {greet: "nekoconnect-server", op_code: 200, random: "RANDOM_STRING", data: 200, hash: "server"}  
+client sends {greet: "auth", op_code: 200, random: random_string, data: 200, hash: hash_of_client_randomstr}  
+server sends {greet: "nekoconnect-server", op_code: 200, random: "RANDOM_STRING", data: 200, hash: hash_of_client_randomstr}  
+the client will hash its own random string on first packet only, next packets will include hashes of server random strings  
+this implementation of the client also sending a random string to the server to hash will also help in client side authentication validation if the client developers choose to add, otherwise it can be discarded (not recommended)  
 then the client sends any packet in any form the plugin developers create and as long as the hash is valid the response stays authorized else it disconnects with an op_code 400  
   
 # Plugins  
