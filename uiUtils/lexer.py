@@ -1,6 +1,7 @@
 class Lexer:
     def __init__(self, file)-> None:
         self.file= file
+        self.prossed= ""
 
         buffer= open(self.file, "r")
         self.data= buffer.read()
@@ -30,6 +31,8 @@ class Lexer:
             if c == " " and not stop:
                 continue
             final_string= final_string + c
+
+        self.prossed= final_string
         return final_string
 
 if __name__ == "__main__":
